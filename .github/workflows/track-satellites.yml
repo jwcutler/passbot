@@ -51,11 +51,3 @@ jobs:
       run: |
         python satellite_batch_tracker.py
     
-    - name: Upload logs as artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: tracking-logs
-        path: |
-          *.log
-        retention-days: 7

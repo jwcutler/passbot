@@ -47,6 +47,12 @@ jobs:
       run: |
         echo "$GOOGLE_TOKEN" > token.json
     
+    - name: Create custom config file
+      env:
+        CUSTOM_CONFIG: ${{ secrets.CUSTOM_CONFIG }}
+      run: |
+        echo "$CUSTOM_CONFIG" > config.yaml
+    
     - name: Run satellite tracker
       run: |
         python satellite_batch_tracker.py

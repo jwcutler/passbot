@@ -11,6 +11,8 @@ Calculate satellite pass times and automatically add them to Google Calendar.
 - Calculates visible satellite passes for your location
 - Automatically creates Google Calendar events
 - Configurable minimum elevation and time range
+- **GitHub Actions automation** for daily tracking
+- **Batch processing** of multiple satellites from configuration
 
 ## Setup
 
@@ -85,6 +87,49 @@ python satellite_pass_tracker.py --delete-all --lat 37.7749 --lon -122.4194
 - `--credentials`: Path to Google API credentials file (default: 'credentials.json')
 - `--delete-existing`: Delete existing satellite events before creating new ones
 - `--delete-all`: Delete all satellite pass events and exit (no new events created)
+
+## Batch Processing
+
+For tracking multiple satellites automatically, use the batch processor:
+
+```bash
+python satellite_batch_tracker.py
+```
+
+This requires a `config.yaml` file with your configuration:
+
+```yaml
+# Observer location
+observer:
+  latitude: 37.7749
+  longitude: -122.4194
+  elevation: 0
+
+# Tracking settings
+tracking:
+  days_ahead: 10
+  min_elevation: 10.0
+  delete_existing: true
+
+# Google Calendar settings
+calendar:
+  calendar_id: "primary"
+  
+# List of satellites to track
+satellites:
+  - name: "ISS"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
+  - name: "NOAA-18"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=28654&FORMAT=tle"
+```
+
+## GitHub Actions Automation
+
+For automated daily tracking, see the `GITHUB_SETUP.md` guide. This sets up:
+- Daily automated runs
+- Secure credential storage via GitHub Secrets
+- Custom configuration via GitHub Secrets
+- Error logging and monitoring
 
 ## Authentication
 

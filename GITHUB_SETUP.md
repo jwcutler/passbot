@@ -13,24 +13,36 @@ This guide walks you through setting up automated satellite pass tracking using 
 1. Fork this repository or create a new one with these files
 2. Push your code to GitHub
 
-## Step 2: Configure Your Location and Satellites
+## Step 2: Prepare Your Configuration
 
-1. Edit `config.yaml` in your repository
-2. Update the observer location:
-   ```yaml
-   observer:
-     latitude: YOUR_LATITUDE
-     longitude: YOUR_LONGITUDE
-     elevation: YOUR_ELEVATION_METERS
-   ```
-3. Add your satellites:
-   ```yaml
-   satellites:
-     - name: "ISS"
-       url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
-     - name: "Your Satellite"
-       url: "https://example.com/your-tle-url"
-   ```
+**Note:** The workflow now uses a custom configuration stored as a GitHub Secret instead of the `config.yaml` file in the repository. This keeps your location and satellite list private.
+
+You'll need to prepare your configuration YAML content for Step 4. Here's the format:
+
+```yaml
+# Observer location
+observer:
+  latitude: YOUR_LATITUDE
+  longitude: YOUR_LONGITUDE
+  elevation: YOUR_ELEVATION_METERS
+
+# Tracking settings
+tracking:
+  days_ahead: 10
+  min_elevation: 10.0
+  delete_existing: true
+
+# Google Calendar settings
+calendar:
+  calendar_id: "primary"
+  
+# List of satellites to track
+satellites:
+  - name: "ISS"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
+  - name: "Your Satellite"
+    url: "https://example.com/your-tle-url"
+```
 
 ## Step 3: Set Up Google API Credentials
 
@@ -70,6 +82,35 @@ This will open a browser window for OAuth consent. After authorization, you'll h
 ### GOOGLE_TOKEN
 - Copy the entire contents of your `token.json` file
 - Paste it as the value for `GOOGLE_TOKEN`
+
+### CUSTOM_CONFIG
+- Copy your custom configuration YAML content (from Step 2)
+- This replaces the need for `config.yaml` in your repository
+- Example value:
+```yaml
+# Observer location
+observer:
+  latitude: 37.7749
+  longitude: -122.4194
+  elevation: 0
+
+# Tracking settings
+tracking:
+  days_ahead: 10
+  min_elevation: 10.0
+  delete_existing: true
+
+# Google Calendar settings
+calendar:
+  calendar_id: "primary"
+  
+# List of satellites to track
+satellites:
+  - name: "ISS"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
+  - name: "NOAA-18"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=28654&FORMAT=tle"
+```
 
 ## Step 5: Test the Workflow
 
@@ -126,7 +167,7 @@ python satellite_batch_tracker.py
 To use a specific calendar instead of your primary calendar:
 
 1. Find the Calendar ID in Google Calendar Settings
-2. Update `config.yaml`:
+2. Update your `CUSTOM_CONFIG` secret:
    ```yaml
    calendar:
      calendar_id: "abc123@group.calendar.google.com"

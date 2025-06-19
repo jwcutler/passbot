@@ -98,6 +98,36 @@ def process_satellites(config):
 def main():
     """Main entry point"""
     try:
+        # Check if credential files exist and are valid JSON
+        import json
+        import os
+        
+        if os.path.exists('credentials.json'):
+            logger.info("credentials.json found")
+            try:
+                with open('credentials.json', 'r') as f:
+                    json.load(f)
+                logger.info("credentials.json is valid JSON")
+            except json.JSONDecodeError as e:
+                logger.error(f"credentials.json is invalid JSON: {e}")
+                sys.exit(1)
+        else:
+            logger.error("credentials.json not found")
+            sys.exit(1)
+            
+        if os.path.exists('token.json'):
+            logger.info("token.json found")
+            try:
+                with open('token.json', 'r') as f:
+                    json.load(f)
+                logger.info("token.json is valid JSON")
+            except json.JSONDecodeError as e:
+                logger.error(f"token.json is invalid JSON: {e}")
+                sys.exit(1)
+        else:
+            logger.error("token.json not found")
+            sys.exit(1)
+        
         config = load_config()
         exit_code = process_satellites(config)
         sys.exit(exit_code)
@@ -106,6 +136,8 @@ def main():
         sys.exit(1)
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         sys.exit(1)
 
 

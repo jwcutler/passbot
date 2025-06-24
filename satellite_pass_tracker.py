@@ -155,11 +155,9 @@ class GoogleCalendarIntegration:
             'description': f'Max elevation: {satellite_pass.max_elevation:.1f}°\nCreated by Satellite Pass Tracker',
             'start': {
                 'dateTime': satellite_pass.rise_time.isoformat(),
-                'timeZone': 'UTC',
             },
             'end': {
                 'dateTime': satellite_pass.set_time.isoformat(),
-                'timeZone': 'UTC',
             },
             'reminders': {
                 'useDefault': False,

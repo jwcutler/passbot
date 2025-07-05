@@ -3,6 +3,7 @@
 Batch satellite pass tracker - Processes multiple satellites from config file
 """
 
+import os
 import sys
 import yaml
 import logging
@@ -102,30 +103,43 @@ def main():
         import json
         import os
         
-        if os.path.exists('credentials.json'):
-            logger.info("credentials.json found")
+        # Check which credential file exists
+        if os.path.exists('service-account.json'):
+            cred_file = 'service-account.json'
+            logger.info("service-account.json found (service account mode)")
             try:
-                with open('credentials.json', 'r') as f:
+                with open(cred_file, 'r') as f:
+                    json.load(f)
+                logger.info("service-account.json is valid JSON")
+            except json.JSONDecodeError as e:
+                logger.error(f"service-account.json is invalid JSON: {e}")
+                sys.exit(1)
+        elif os.path.exists('credentials.json'):
+            cred_file = 'credentials.json'
+            logger.info("credentials.json found (OAuth mode)")
+            try:
+                with open(cred_file, 'r') as f:
                     json.load(f)
                 logger.info("credentials.json is valid JSON")
             except json.JSONDecodeError as e:
                 logger.error(f"credentials.json is invalid JSON: {e}")
                 sys.exit(1)
-        else:
-            logger.error("credentials.json not found")
-            sys.exit(1)
-            
-        if os.path.exists('token.json'):
-            logger.info("token.json found")
-            try:
-                with open('token.json', 'r') as f:
-                    json.load(f)
-                logger.info("token.json is valid JSON")
-            except json.JSONDecodeError as e:
-                logger.error(f"token.json is invalid JSON: {e}")
+                
+            # For OAuth, check token file too
+            if os.path.exists('token.json'):
+                logger.info("token.json found")
+                try:
+                    with open('token.json', 'r') as f:
+                        json.load(f)
+                    logger.info("token.json is valid JSON")
+                except json.JSONDecodeError as e:
+                    logger.error(f"token.json is invalid JSON: {e}")
+                    sys.exit(1)
+            else:
+                logger.error("token.json not found (required for OAuth mode)")
                 sys.exit(1)
         else:
-            logger.error("token.json not found")
+            logger.error("No credential file found (looking for service-account.json or credentials.json)")
             sys.exit(1)
         
         config = load_config()

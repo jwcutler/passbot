@@ -4,16 +4,13 @@ Satellite Pass Tracker - Calculate satellite pass times and add to Google Calend
 """
 
 import os
-import re
 import requests
-from datetime import datetime, timedelta
-from typing import List, Tuple, Optional, Union
+from datetime import datetime, timedelta, timezone
+from typing import List, Tuple, Union
 from dataclasses import dataclass
 
 from skyfield.api import load, Topos, EarthSatellite
-from skyfield.timelib import Time
 
-import google.auth
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -102,7 +99,7 @@ class SatellitePassCalculator:
             elif event == 1:  # Culmination
                 if 'rise_time' in current_pass:
                     topocentric = (satellite - self.observer).at(ti)
-                    alt, az, distance = topocentric.altaz()
+                    alt, _, _ = topocentric.altaz()
                     current_pass['culmination_time'] = dt
                     current_pass['max_elevation'] = alt.degrees
             elif event == 2:  # Set
@@ -125,6 +122,16 @@ class GoogleCalendarIntegration:
     
     def _authenticate(self, credentials_file: str):
         """Authenticate with Google Calendar API"""
+        from google.oauth2 import service_account
+        
+        # Try service account first (for automation)
+        if credentials_file.endswith('service-account.json') or 'service_account' in credentials_file:
+            SCOPES = ['https://www.googleapis.com/auth/calendar']
+            creds = service_account.Credentials.from_service_account_file(
+                credentials_file, scopes=SCOPES)
+            return build('calendar', 'v3', credentials=creds)
+        
+        # Fall back to OAuth2 flow (for interactive use)
         creds = None
         token_file = 'token.json'
         
@@ -172,9 +179,9 @@ class GoogleCalendarIntegration:
     
     def delete_satellite_events(self, satellite_name: str = None, days_ahead: int = 30) -> int:
         """Delete existing satellite pass events"""
-        now = datetime.utcnow()
-        time_max = (now + timedelta(days=days_ahead)).isoformat() + 'Z'
-        time_min = (now - timedelta(days=7)).isoformat() + 'Z'  # Look back 7 days for existing events
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        time_max = (now + timedelta(days=days_ahead)).isoformat().replace('+00:00', 'Z')
+        time_min = (now - timedelta(days=7)).isoformat().replace('+00:00', 'Z')
         
         # Search for events
         events_result = self.service.events().list(

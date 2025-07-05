@@ -44,7 +44,7 @@ def process_satellites(config):
         observer_lon=observer['longitude'],
         observer_elevation=observer.get('elevation', 0),
         calendar_id=calendar.get('calendar_id', 'primary'),
-        credentials_file='credentials.json'
+        credentials_file='service-account.json' if os.path.exists('service-account.json') else 'credentials.json'
     )
     
     # Statistics

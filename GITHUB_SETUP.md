@@ -46,28 +46,31 @@ satellites:
 
 ## Step 3: Set Up Google API Credentials
 
-### Create OAuth2 Credentials
+### Create Service Account (Recommended for GitHub Actions)
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
 3. Enable the Google Calendar API
-4. Go to "Credentials" → "Create Credentials" → "OAuth client ID"
-5. Choose "Desktop application"
-6. Download the credentials JSON file
+4. Go to "IAM & Admin" → "Service Accounts"
+5. Click "Create Service Account"
+   - Name: "Satellite Pass Tracker"
+   - Description: "Automated satellite pass tracking"
+6. Click "Create and Continue"
+7. Skip the optional steps and click "Done"
+8. Click on the newly created service account
+9. Go to "Keys" tab → "Add Key" → "Create new key"
+10. Choose JSON format and download the file
 
-### Generate Initial Token
+### Share Your Calendar
 
-Run this locally to generate the initial token:
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the script once to generate token.json
-python satellite_pass_tracker.py 25544 --lat YOUR_LAT --lon YOUR_LON
-```
-
-This will open a browser window for OAuth consent. After authorization, you'll have a `token.json` file.
+1. Open the downloaded service account JSON file
+2. Find the `client_email` field (looks like `name@project.iam.gserviceaccount.com`)
+3. In Google Calendar:
+   - Go to Settings → Settings for my calendars
+   - Select your calendar
+   - Under "Share with specific people", add the service account email
+   - Set permission to "Make changes to events"
+   - Click "Send"
 
 ## Step 4: Add GitHub Secrets
 
@@ -76,12 +79,9 @@ This will open a browser window for OAuth consent. After authorization, you'll h
 3. Add these repository secrets:
 
 ### GOOGLE_CREDENTIALS
-- Copy the entire contents of your `credentials.json` file
+- Copy the entire contents of your service account JSON file
 - Paste it as the value for `GOOGLE_CREDENTIALS`
-
-### GOOGLE_TOKEN
-- Copy the entire contents of your `token.json` file
-- Paste it as the value for `GOOGLE_TOKEN`
+- This is the only authentication secret needed (no token required!)
 
 ### CUSTOM_CONFIG
 - Copy your custom configuration YAML content (from Step 2)
@@ -136,7 +136,9 @@ Use [crontab.guru](https://crontab.guru/) to help create cron expressions.
 
 ### Common Issues
 
-1. **Authentication Errors**: Ensure your `GOOGLE_CREDENTIALS` and `GOOGLE_TOKEN` secrets are correct
+1. **Authentication Errors**: 
+   - Ensure your `GOOGLE_CREDENTIALS` secret contains the service account JSON
+   - Verify the service account email has access to your calendar
 2. **TLE Download Fails**: Check that your satellite URLs are valid
 3. **Calendar Permission Denied**: Make sure the Calendar API is enabled and your OAuth consent screen is configured
 
@@ -150,7 +152,50 @@ Use [crontab.guru](https://crontab.guru/) to help create cron expressions.
 
 Test locally before committing:
 
+#### Using Service Account (Recommended)
 ```bash
+# 1. Download your service account JSON from Google Cloud Console
+# 2. Save it as service-account.json in the project directory
+# 3. Make sure your calendar is shared with the service account email
+
+# Test single satellite
+python satellite_pass_tracker.py 25544 --lat YOUR_LAT --lon YOUR_LON --credentials service-account.json
+
+# Test batch processing
+python satellite_batch_tracker.py
+```
+
+#### Using OAuth2 (Interactive)
+```bash
+# For first-time setup or local testing without service account
+python satellite_pass_tracker.py 25544 --lat YOUR_LAT --lon YOUR_LON
+
+# This will open a browser for authentication and create token.json
+```
+
+#### Test Configuration
+```bash
+# Create a test config.yaml
+cat > config.yaml << EOF
+observer:
+  latitude: 37.7749
+  longitude: -122.4194
+  elevation: 0
+
+tracking:
+  days_ahead: 10
+  min_elevation: 10.0
+  delete_existing: true
+
+calendar:
+  calendar_id: "primary"
+  
+satellites:
+  - name: "ISS"
+    url: "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
+EOF
+
+# Run batch tracker
 python satellite_batch_tracker.py
 ```
 

@@ -133,4 +133,31 @@ For automated daily tracking, see the `GITHUB_SETUP.md` guide. This sets up:
 
 ## Authentication
 
-On first run, the script will open a browser window for Google OAuth authentication. After successful authentication, a `token.json` file will be created for future use.
+The script supports two authentication methods:
+
+### Service Account (Recommended for automation)
+- Download service account JSON from Google Cloud Console
+- Share your calendar with the service account email
+- Use with `--credentials service-account.json`
+- No expiration, perfect for GitHub Actions
+
+### OAuth2 (For interactive use)
+- On first run, opens browser for authentication
+- Creates `token.json` for future use
+- May require periodic re-authentication
+
+## Local Testing
+
+```bash
+# Activate virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Test with service account
+python satellite_pass_tracker.py 25544 --lat 37.7749 --lon -122.4194 --credentials service-account.json
+
+# Test batch processing
+python satellite_batch_tracker.py
+
+# Delete test events
+python satellite_pass_tracker.py --delete-all --lat 37.7749 --lon -122.4194
+```

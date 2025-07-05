@@ -3,6 +3,7 @@
 Batch satellite pass tracker - Processes multiple satellites from config file
 """
 
+import os
 import sys
 import yaml
 import logging
